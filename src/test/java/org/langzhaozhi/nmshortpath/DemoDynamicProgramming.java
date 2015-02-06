@@ -21,13 +21,15 @@ public class DemoDynamicProgramming {
     private static final int ColumnCount = 300;
     private static final int VertexCountOfEveryColumn = 100;
     private static final int N = 100;//NM-最短路径的N可以依次调 N=1,2,3.....看下情况;
-    private static final int M = 1000;//当M调节的愈来愈大的时候，可以明显看到组合爆炸的问题：表现为内存占用和求解时间的爆炸伤
+    private static final int M = 100;//当M调节的愈来愈大的时候，可以明显看到组合爆炸的问题：表现为内存占用和求解时间的爆炸伤
 
     public static void main(String [] args) {
         AtomicInteger attachmentGenerator = new AtomicInteger( 0 );
-        AtomicInteger distanceGenerator = new AtomicInteger( 1000_0000 );
 
-        NMShortPathGraph<Integer> graphModel = new NMShortPathGraph<Integer>( N, M, attachmentGenerator.getAndIncrement(), 0xFFFF_FFFF );
+        //DebugDistanceGenerator gen = DemoDynamicProgramming.mFixedGenerator;//看组合爆炸,必须由M来压制
+        DebugDistanceGenerator gen = mDecrementGenerator;//M无影响
+
+        NMShortPathGraph<Integer> graphModel = new NMShortPathGraph<Integer>( DemoDynamicProgramming.N, DemoDynamicProgramming.M, attachmentGenerator.getAndIncrement(), 0xFFFF_FFFF );
 
         //初始<#起点#>为前一排的顶点
         ArrayList<NMShortPathVertex<Integer>> previousColumnVertexArray = new ArrayList<NMShortPathVertex<Integer>>( DemoDynamicProgramming.VertexCountOfEveryColumn );
@@ -37,9 +39,8 @@ public class DemoDynamicProgramming {
 
         for (int i = 0; i < DemoDynamicProgramming.ColumnCount; ++i) {
             for (int j = 0; j < DemoDynamicProgramming.VertexCountOfEveryColumn; ++j) {
-                distanceGenerator.set( 10000 );//前一排的每个顶点到当前排的每个顶点都有一条前向边:距离依次递减
                 @SuppressWarnings("unchecked")
-                NMShortPathEdge<Integer> [] previousEdgeArray = previousColumnVertexArray.stream().map( (aPreviousVertex) -> new NMShortPathEdge<Integer>( aPreviousVertex, distanceGenerator.getAndDecrement() + 0.7 ) ).toArray( NMShortPathEdge []::new );
+                NMShortPathEdge<Integer> [] previousEdgeArray = previousColumnVertexArray.stream().map( (aPreviousVertex) -> new NMShortPathEdge<Integer>( aPreviousVertex, gen.generateDistance() ) ).toArray( NMShortPathEdge []::new );
                 NMShortPathVertex<Integer> currentVertex = new NMShortPathVertex<Integer>( attachmentGenerator.getAndIncrement(), previousEdgeArray );
                 currentColumnVertexArray.add( currentVertex );
             }
@@ -51,7 +52,7 @@ public class DemoDynamicProgramming {
             currentColumnVertexArray.clear();
         }
         //最后一排每个顶点建立到<#终点#>的路径
-        previousColumnVertexArray.forEach( (aLastColumnVertex) -> aLastColumnVertex.connectToEndVertex( distanceGenerator.getAndDecrement() ) );
+        previousColumnVertexArray.forEach( (aLastColumnVertex) -> aLastColumnVertex.connectToEndVertex( gen.generateDistance() ) );
 
         System.gc();
         //至此建立了完全的动态规划图,求解之
@@ -62,7 +63,7 @@ public class DemoDynamicProgramming {
         System.out.println( "求解动态规划 spend: " + (t2 - t1) + " ms\n\n" );
         System.out.flush();
         //打印看下结果
-        System.err.println( "NM-最短路径(N==" + N + ", M=" + M + "):" );
+        System.err.println( "NM-最短路径(N==" + DemoDynamicProgramming.N + ", M=" + DemoDynamicProgramming.M + "):" );
         System.err.println( "    实际ShortPath个数(N)为[" + resultNMShortPath.getShortPathCount() + "]个" );
         System.err.println( "    实际VertexPath个数(M)所有从起点到终点的经由不同顶点的路径顶点序列有[" + resultNMShortPath.getVertexPathCount() + "]个" );
         /*
@@ -86,4 +87,24 @@ public class DemoDynamicProgramming {
         }
         */
     }
+
+    static AtomicInteger mDistanceGenerator = new AtomicInteger( 1000_0000 );
+
+    @FunctionalInterface
+    interface DebugDistanceGenerator {
+        double generateDistance();
+    }
+
+    /**
+     * 所有边的距离都是1.0：此时哪怕N==1 也产生组合爆炸问题：超指数增长的不同顶点路径的组合数目增长。
+     * 此时可把M设置成很大或 Integer.MAX_VALUE 来看 OOM 的情况
+     */
+    public static DebugDistanceGenerator mFixedGenerator = () -> 1.0;
+
+    /**
+     * 所有边的距离都不相同，此时 M 没有什么影响，因为每一个ShortPath 基本只有一条 VertexPath。
+     *
+     * 问题取决于 N 的大小, 此时把 M 设置成多大也没有什么影响
+     */
+    public static DebugDistanceGenerator mDecrementGenerator = () -> DemoDynamicProgramming.mDistanceGenerator.getAndDecrement();
 }
