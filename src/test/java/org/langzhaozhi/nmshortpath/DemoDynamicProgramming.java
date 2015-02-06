@@ -23,7 +23,7 @@ public class DemoDynamicProgramming {
     private static final int N = 10;//NM-最短路径的N可以依次调 N=1,2,3.....看下情况;
     private static final int M = 10000000;//当M调节的愈来愈大的时候，可以明显看到组合爆炸的问题：表现为内存占用和求解时间的爆炸伤
 
-    public static void main(String [] args) {
+    public static void main(String [] args) {//运行本程序需要64下预先把JVM调大，如 -Xms4g 或 32位机器下至少 -Xms1g
         AtomicInteger attachmentGenerator = new AtomicInteger( 0 );
 
         //DebugDistanceGenerator gen = DemoDynamicProgramming.mFixedGenerator;//所有边的距离相同：看组合爆炸,必须由M来压制
