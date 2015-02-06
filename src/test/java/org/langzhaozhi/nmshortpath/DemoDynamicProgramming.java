@@ -27,7 +27,7 @@ public class DemoDynamicProgramming {
         AtomicInteger attachmentGenerator = new AtomicInteger( 0 );
 
         //DebugDistanceGenerator gen = DemoDynamicProgramming.mFixedGenerator;//看组合爆炸,必须由M来压制
-        DebugDistanceGenerator gen = mDecrementGenerator;//M无影响
+        DebugDistanceGenerator gen = DemoDynamicProgramming.mDecrementGenerator;//M无影响
 
         NMShortPathGraph<Integer> graphModel = new NMShortPathGraph<Integer>( DemoDynamicProgramming.N, DemoDynamicProgramming.M, attachmentGenerator.getAndIncrement(), 0xFFFF_FFFF );
 

@@ -175,8 +175,8 @@ public final class NMShortPathGraph<A> implements GraphStrictOnewayWithStartEndV
                 int groupCount = previousEdgeCount;
                 //多个不同的前向顶点，虽然每个前向顶点自身已经排过序了，但这些前向顶点到本顶点的累积最短距离还需要再次排序看哪些更短距离
                 previousEdgeShortPathGroupList.sort( NMShortPathGraph.mGroupComparator );
-                //每个顶点最多N条ShortPath并且最多M条不同顶点路径组合数目(下面的循环分别用n和m表示N的迭代限制和M的迭代限制)
-                for (int n = 0, nlast = nshortPathCount - 1, m = 0, mlast = mvertexPathCount - 1; n <= nlast && m <= mlast && groupCount > 0; ++n) {
+                //每个顶点最多N条ShortPath并且最多M条不同顶点路径组合数目(下面的循环分别用n和m表示N的迭代限制和M的迭代限制,注意应该是 m < mlast 而非 m <= mlast 条件,没有++m)
+                for (int n = 0, nlast = nshortPathCount - 1, m = 0, mlast = mvertexPathCount - 1; n <= nlast && m < mlast && groupCount > 0; ++n) {
                     //每一轮直接从0开始依次找前面若干个相同的 minDistance 合并即可: previousEdgeShortPathGroupList已经排序好了的
                     double minDistance = previousEdgeShortPathGroupList.get( 0 ).mCurrentTotalDistance;
                     cacheVertexPathArray.clear();//clear ready for current ShortPath use
